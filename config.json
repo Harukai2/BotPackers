@@ -1,12 +1,14 @@
 {
-  "version": "1.6.6",
+  "version": "1.7.6",
   "language": "en",
+  "useEnvForCredentials": false,
+  "envGuide": "When useEnvForCredentials enabled, it will use the process.env key provided for email and password, which helps hide your credentials, you can find env in render's environment tab, you can also find it in replit secrets.",
   "DeveloperMode": true,
   "autoCreateDB": true,
   "allowInbox": false,
   "autoClean": true,
   "adminOnly": false,
-  "encryptSt": true,
+  "encryptSt": false,
   "removeSt": false,
   "UPDATE": {
     "Package": true,

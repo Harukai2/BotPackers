@@ -8,6 +8,44 @@ const login = require('./includes/login');
 const moment = require("moment-timezone");
 const logger = require("./utils/log.js");
 const chalk = require("chalk");
+const { spawn } = require("child_process");
+const pkg = require('./package.json');
+
+console.log(chalk.bold.dim(` ${process.env.REPL_SLUG}`.toUpperCase() + `(v${pkg.version})`));
+  logger.log(`Getting Started!`, "STARTER");
+
+global.utils = require("./utils");
+global.loading = require("./utils/log.js");
+global.nodemodule = new Object();
+global.config = new Object();
+global.configModule = new Object();
+global.moduleData = new Array();
+global.language = new Object();
+global.account = new Object();
+
+function startProject() {
+    try {
+        const child = spawn("node", ["--trace-warnings", "--async-stack-traces", "index.js"], {
+            cwd: __dirname,
+            stdio: "inherit",
+            shell: true
+        });
+
+        child.on("close", (codeExit) => {
+            if (codeExit !== 0) {
+                startProject();
+            }
+        });
+
+        child.on("error", (error) => {
+            console.log(chalk.yellow(``), `An error occurred while starting the child process: ${error}`);
+        });
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+} 
+
+startProject();
 
 global.client = new Object({
   commands: new Map(),
@@ -56,15 +94,6 @@ global.data = new Object({
   allCurrenciesID: new Array(),
   allThreadID: new Array()
 });
-
-global.utils = require("./utils");
-global.loading = require("./utils/log");
-global.nodemodule = new Object();
-global.config = new Object();
-global.configModule = new Object();
-global.moduleData = new Array();
-global.language = new Object();
-global.account = new Object();
 
 // ────────────────── //
 // -- LOAD THEMES -- //
@@ -138,12 +167,25 @@ try {
   logger.loader("Found the bot's appstate.")
 } catch (e) {
   logger.loader("Can't find the bot's appstate.", "error");
-  return;
+ // return;
 }
 
 function onBot() {
-  const loginData = {};
-  loginData.appState = appState;
+  let loginData;
+  if (appState === null) {
+    loginData = {
+      email: config.email,
+      password: config.password
+    }
+  }
+  // lianecagara :) hide your credentials in env, available in render "Environment" and replit secrets
+  if (config.useEnvForCredentials) {
+    loginData = {
+      email: process.env[config.email],
+      password: process.env[config.password]
+    }
+  }
+  loginData = { appState: appState };
   login(loginData, async (err, api) => {
     if (err) {
       if (err.error == 'Error retrieving userID. This can be caused by a lot of things, including getting blocked by Facebook for logging in from an unknown location. Try logging in with a browser to verify.') {
@@ -212,7 +254,7 @@ function onBot() {
             if (dependencies) {
               Object.entries(dependencies).forEach(([reqDependency, dependencyVersion]) => {
                 if (listPackage[reqDependency]) return;
-                
+
                   try {
                     execSync(`npm --package-lock false --save install ${reqDependency}`, {
                       stdio: 'inherit',

@@ -15,5 +15,5 @@ module.exports = function (defaultFuncs, api, ctx) {
 		} else {
 			throw new Error(`moduleObj must be an object, not ${utils.getType(moduleObj)}!`);
 		}
+  }
 	};
-};
